@@ -48,6 +48,17 @@ struct InferenceGraph {
 
     // This structure describes image shape transformation
     struct Transform {
+    #if defined(__MSVC__)
+        Transform() = default;
+        Transform(bool isFixed, float scaleWidth, float scaleHeight, float translateWidth, float translateHeight) {
+            this->isFixed = isFixed;
+            this->scaleWidth  = scaleWidth;
+            this->scaleHeight = scaleHeight;
+            this->translateWidth = translateWidth;
+            this->translateHeight = translateHeight;
+        }
+    #endif
+
         bool isFixed = 0;
         union {
             struct {
@@ -64,7 +75,12 @@ struct InferenceGraph {
             };
         };
 
+    #if defined(__MSVC__)
+        static Transform identity() { return {0, 1.0f, 1.0f, 0.0f, 0.0f}; }
+    #else
         static constexpr Transform identity() { return {0, {{1.0f, 1.0f, 0.0f, 0.0f}}}; }
+    #endif
+
     };
 
     // This structure declares one layer of the inference processing graph at high level.

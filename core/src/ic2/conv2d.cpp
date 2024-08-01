@@ -109,7 +109,13 @@ InferenceGraph::Transform Conv2DLayer::getOutputScaleDimAdjustment() const {
     } else {
         translation = 1 + (static_cast<float>(offset[0] + offset[1] - 1) - static_cast<float>(_desc.kernelSize)) / static_cast<float>(_desc.stride);
     }
+
+#if defined(__MSVC__)
+    return {0, scale, scale, translation, translation };
+#else
     return {0, {{scale, scale, translation, translation}} };
+#endif
+
 }
 
 

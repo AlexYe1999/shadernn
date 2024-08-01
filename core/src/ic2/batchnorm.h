@@ -41,9 +41,16 @@ public:
     BatchNormalizationLayer(BatchNormalizationDesc&& d): GenericConvolutionLayer(d), _desc(std::move(d)) {}
     virtual ~BatchNormalizationLayer() = default;
 
+
+#if defined(__MSVC__)
+    virtual InferenceGraph::Transform getOutputScaleDimAdjustment() const override {
+        return {0, 1.0f, 1.0f, 0.0f, 0.0f };
+    }
+#else
     virtual InferenceGraph::Transform getOutputScaleDimAdjustment() const override {
         return {0, {{1.0f, 1.0f, 0.0f, 0.0f}} };
     }
+#endif
 
 protected:
     BatchNormalizationDesc _desc;

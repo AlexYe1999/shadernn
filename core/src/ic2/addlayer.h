@@ -39,7 +39,13 @@ class AddLayer : public ShaderLayer {
 public:
     AddLayer(AddDesc&& d): ShaderLayer(d), _desc(std::move(d)) {}
     virtual ~AddLayer() = default;
+
+#if defined(__MSVC__)
+    InferenceGraph::Transform getOutputScaleDimAdjustment() const override { return {0, 1.0f, 1.0f, 0.0f, 0.0f}; };
+#else
     InferenceGraph::Transform getOutputScaleDimAdjustment() const override { return {0, {{1.0f, 1.0f, 0.0f, 0.0f}}}; };
+#endif
+
 
 protected:
     AddDesc _desc;

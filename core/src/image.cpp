@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <functional>
 
 using namespace snn;
 
@@ -505,11 +506,14 @@ bool snn::toR32f(R32f& dst, const uint8_t* src, ColorFormat srcFormat) {
 }
 
 bool snn::toRgba8(Rgba8& dst, const uint8_t* src, ColorFormat srcFormat, bool normalize) {
+
+    // The reason for this double cast is to ensure that on all compilers
+    // when casting negative floats, we want the result roll over, not saturate
+
     auto f32ToU8N = normalize
-        // The reason for this double cast is to ensure that on all compilers
-        // when casting negative floats, we want the result roll over, not saturate
-        ? [](float f) { return (uint8_t)(int8_t)(f * 255.0f); }
-        : [](float f) { return (uint8_t)(int8_t)f; };
+        ? std::function([](float f) { return (uint8_t)(int8_t)(f * 255.0f); })
+        : std::function([](float f) { return (uint8_t) (int8_t) f; });
+
     switch (srcFormat) {
     case ColorFormat::RGBA32F: {
         auto f32 = (const float*) src;
@@ -570,11 +574,14 @@ bool snn::toRgba8(Rgba8& dst, const uint8_t* src, ColorFormat srcFormat, bool no
 }
 
 bool snn::toR8(R8& dst, const uint8_t* src, ColorFormat srcFormat, bool normalize) {
+
+    // The reason for this double cast is to ensure that on all compilers
+    // when casting negative floats, we want the resunt roll over, not saturate
+
     auto f32ToU8N = normalize
-        // The reason for this double cast is to ensure that on all compilers
-        // when casting negative floats, we want the resunt roll over, not saturate
-        ? [](float f) { return (uint8_t)(int8_t)(f * 255.0f); }
-        : [](float f) { return (uint8_t)(int8_t)f; };
+        ? std::function([](float f) { return (uint8_t)(int8_t)(f * 255.0f); })
+        : std::function([](float f) { return (uint8_t)(int8_t)f; });
+
     switch (srcFormat) {
     case ColorFormat::R8: {
         dst.r = src[0];

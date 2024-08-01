@@ -23,20 +23,25 @@ set(config_file "${CMAKE_CURRENT_SOURCE_DIR}/config.txt")
 if(NOT EXISTS ${config_file})
     message(FATAL_ERROR "${config_file} file not found. Run config.sh script")
 endif()
+
 file(STRINGS ${config_file} PLATFORMS)
 message(STATUS "Build for platforms: ${PLATFORMS}")
+
 string(FIND ${PLATFORMS} "GL" POS_GL)
 string(FIND ${PLATFORMS} "VULKAN" POS_VULKAN)
+
 if (${POS_GL} GREATER_EQUAL 0)
     message(STATUS "Building with OpenGL support")
     set(SUPPORT_GL 1)
     add_definitions( -DSUPPORT_GL )
 endif()
+
 if (${POS_VULKAN} GREATER_EQUAL 0)
     message(STATUS "Building with Vulkan support")
     set(SUPPORT_VULKAN 1)
     add_definitions( -DSUPPORT_VULKAN )
 endif()
+
 if (NOT DEFINED SUPPORT_GL AND NOT DEFINED SUPPORT_VULKAN)
     message(FATAL_ERROR "Neither OpenGL nor Vulkan is supported! Run config.sh script")
 endif()
@@ -161,6 +166,7 @@ endif()
 
 set(snn_3rdparty_headers
     3rdparty/glm/include/
+    3rdparty/glfw/include/
     3rdparty/libyuv/include/
     3rdparty/eigen-3.4.0/
     3rdparty/picojson/include/
@@ -230,11 +236,20 @@ if (DEFINED SUPPORT_VULKAN)
     message(STATUS, ${outVar})
 endif() # SUPPORT_VULKAN
 
-add_library(snn_core SHARED ${sources} ${public_headers} ${snn_3rdparty_sources})
+# TODO : Fix warning
+if(MSVC)
+    add_library(snn_core SHARED ${sources} ${public_headers} ${snn_3rdparty_sources})
+    target_compile_options(snn_core PUBLIC -D__MSVC__) 
+else()
+    add_library(snn_core SHARED ${sources} ${public_headers} ${snn_3rdparty_sources})
+    target_compile_options(snn_core PUBLIC  -fPIC -Wall -Wextra -Werror -Wno-unused-function -Wno-unused-private-field -Wno-sign-compare)
+endif()
 
-target_compile_options(snn_core PUBLIC  -fPIC -Wall -Wextra -Werror -Wno-unused-function -Wno-unused-private-field -Wno-sign-compare)
 # Eliminating picojson compile error
+if(!MSVC)
 set_source_files_properties(${root-dir}/core/src/ic2/modelparser.cpp PROPERTIES COMPILE_FLAGS "-Wno-uninitialized")
+endif()
+
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(snn_core PRIVATE -D_DEBUG -g)
     message(STATUS "cmake Build Type: Debug")
@@ -367,7 +382,23 @@ else()
     target_compile_options(snn-assets PRIVATE -fPIC)
     
     target_include_directories(snn_core PUBLIC ${OpenCV_INCLUDE_DIRS})
-    target_link_libraries(snn_core PUBLIC snn-assets stdc++fs yuv jpeg)
+
+    if (MSVC)
+        set(jpeg-dir ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/jpeg)
+        set(glfw ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/glfw/lib64/glfw3.lib)
+        target_link_libraries(snn_core 
+        PUBLIC 
+            snn-assets 
+            yuv 
+            ${glfw} 
+            ${OpenCV_LIBS}
+            debug ${jpeg-dir}/Debug/jpeg.lib
+            optimized ${jpeg-dir}/Release/jpeg.lib
+        )
+    else()
+        target_link_libraries(snn_core PUBLIC snn-assets stdc++fs yuv jpeg)
+    endif()
+
 endif()
 
 if (DEFINED SUPPORT_VULKAN)

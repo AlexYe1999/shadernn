@@ -351,5 +351,10 @@ InferenceGraph::Transform Conv2DTransposeLayerGl::getOutputScaleDimAdjustment() 
     } else {
         translation = static_cast<float>(_desc.kernelSize - _desc.stride);
     }
+#if defined(__MSVC__)
+    return {0, scale, scale, translation, translation };
+#else
     return {0, {{scale, scale, translation, translation}} };
+#endif
+
 }

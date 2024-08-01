@@ -42,7 +42,11 @@ public:
     YOLOLayer& operator=(const YOLOLayer& d) = delete;
     ~YOLOLayer() {}
 
+#if defined(__MSVC__)
+    InferenceGraph::Transform getOutputScaleDimAdjustment() const override { return {0, 1.0f, 1.0f, 0.0f, 0.0f}; };
+#else
     InferenceGraph::Transform getOutputScaleDimAdjustment() const override { return {0, {{1.0f, 1.0f, 0.0f, 0.0f}}}; };
+#endif
 
     virtual void getOutputDims(uint32_t& width, uint32_t& height, uint32_t& depth) const override {
         width  = 100 * 6; // Max 100 bounding box

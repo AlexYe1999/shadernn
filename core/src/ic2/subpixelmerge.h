@@ -38,9 +38,16 @@ class SubpixelLayer : public ShaderLayer {
 public:
     SubpixelLayer(SubpixelDesc&& d): ShaderLayer(d), _desc(std::move(d)) {}
     virtual ~SubpixelLayer() = default;
+
+#if defined(__MSVC__)
+    virtual InferenceGraph::Transform getOutputScaleDimAdjustment() const override {
+        return {0, static_cast<float>(_desc.kernelSize), static_cast<float>(_desc.kernelSize), 0.0f, 0.0f};
+    }
+#else
     virtual InferenceGraph::Transform getOutputScaleDimAdjustment() const override {
         return {0, {{ static_cast<float>(_desc.kernelSize), static_cast<float>(_desc.kernelSize), 0.0f, 0.0f}} };
     }
+#endif
 
 protected:
     SubpixelDesc _desc;

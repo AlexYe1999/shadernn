@@ -21,8 +21,10 @@
 #include <fstream>
 #include <iostream>
 #include <exception>
+#include <filesystem>
 #include <utility>
-#ifndef __ANDROID__
+
+#if !defined(__ANDROID__) && !defined(__MSVC__)
 #include <experimental/filesystem>
 #endif
 
@@ -241,6 +243,11 @@ ModelParser::ModelParser(const CreationParameters cp) {
         size_t pos = name.find("/");
         std::string subPath = name.substr(0, pos);
         std::string path = std::string(MODEL_DIR) + "/" + subPath + "/";
+#elif defined(__MSVC__)
+        std::string path    = std::filesystem::current_path().string();
+        size_t pos          = name.find("/");
+        std::string subPath = name.substr(0, pos);
+        path += ("/" + std::string(MODEL_DIR) + "/" + subPath + "/");
 #else
         std::string path = std::experimental::filesystem::current_path();
         size_t pos = name.find("/");

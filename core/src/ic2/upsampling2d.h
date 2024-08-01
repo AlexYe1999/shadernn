@@ -37,10 +37,17 @@ class UpSampling2DLayer : public ShaderLayer {
 public:
     UpSampling2DLayer(UpSampling2DDesc&& d): ShaderLayer(d), _desc(std::move(d)) {}
     virtual ~UpSampling2DLayer() = default;
+
+#if defined(__MSVC__)
+    virtual InferenceGraph::Transform getOutputScaleDimAdjustment() const override
+    {
+        return {0, static_cast<float>(_desc.scale), static_cast<float>(_desc.scale), 0.0f, 0.0f};
+    }
+#else
     virtual InferenceGraph::Transform getOutputScaleDimAdjustment() const override {
         return {0, {{ static_cast<float>(_desc.scale), static_cast<float>(_desc.scale), 0.0f, 0.0f}}
     };
-}
+#endif
 
 protected:
     UpSampling2DDesc _desc;

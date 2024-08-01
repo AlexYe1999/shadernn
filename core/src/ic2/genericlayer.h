@@ -169,8 +169,11 @@ public:
     virtual void setLayerExecutionType(InferenceGraph::LayerExecutionType newExecution) override { executeBackend = newExecution; }
 
 private:
+#if defined(__MSVC__)
+    virtual InferenceGraph::Transform getOutputScaleDimAdjustment() const override { return {0, 1.0f, 1.0f, 0.0f, 0.0f}; }
+#else
     virtual InferenceGraph::Transform getOutputScaleDimAdjustment() const override { return {0, {{1.0f, 1.0f, 0.0f, 0.0f}}}; }
-
+#endif
     // Creates a collection of inference passes for Fragment shader
     virtual InferencePassesSptr createFS(const LayerGenOptions&) const = 0;
 

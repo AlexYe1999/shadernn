@@ -71,7 +71,11 @@ InferenceGraph::Transform SeparableConv2DLayer::getOutputScaleDimAdjustment() co
     } else {
         translation = 1.0f + (static_cast<float>(offset[0] + offset[1] - 1) - static_cast<float>(_desc.kernelSize)) / static_cast<float>(_desc.stride);
     }
+#if defined(__MSVC__)
+    return {0, scale, scale, translation, translation };
+#else
     return {0, {{scale, scale, translation, translation}} };
+#endif
 }
 
 void SeparableConv2DLayer::getOutputDims(uint32_t& width, uint32_t& height, uint32_t& depth) const {

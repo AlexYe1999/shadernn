@@ -31,7 +31,13 @@ InferenceGraph::Transform MaxPooling2DLayer::getOutputScaleDimAdjustment() const
     } else {
         translation = 1.0f - 1.0f / static_cast<float>(_desc.stride);
     }
+
+#if defined(__MSVC__)
+    return {0, scale, scale, translation, translation };
+#else
     return {0, {{scale, scale, translation, translation}} };
+#endif
+
 }
 
 void MaxPooling2DLayer::getPaddingOffset(uint32_t (&offsets)[4]) const {

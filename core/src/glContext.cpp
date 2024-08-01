@@ -43,7 +43,7 @@ GlGpuContext* GlGpuContext::cast(GpuContext* context) {
     return static_cast<GlGpuContext*>(context);
 }
 
-GlGpuContext* createGlContext(bool onlyInitGlExtensions) {
+GpuContext* createGlContext(bool onlyInitGlExtensions) {
     return new GlGpuContext(onlyInitGlExtensions);
 }
 
