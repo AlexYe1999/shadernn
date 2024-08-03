@@ -1,3 +1,5 @@
-cd ${BUILD_DIR} && \
-cmake ../ -DOpenGL_GL_PREFERENCE=GLVND -DCMAKE_BUILD_TYPE=${build_type} && \
-make -j8 install
+makedir build
+cmake -B build -G "Visual Studio 17 2022" ^
+        -DOpenGL_GL_PREFERENCE=GLVND -DCMAKE_BUILD_TYPE=${build_type} 
+
+cmake --build build
